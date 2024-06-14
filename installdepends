@@ -1,0 +1,140 @@
+#!/bin/bash
+echo "Script Start"
+gitName=""
+gitEmail=""
+repoURL="https://github.com/StrafeNDestroy/rc-configs"
+repoName="rc-configs"
+extractDir="$HOME/Downloads"
+zipUrl="${repoURL}.git/archive/refs/heads/main.zip"
+
+################################## Functions ############################################
+# Function to check if a command exists
+CommandExists() {
+    command -v "$1" >/dev/null 2>&1 
+}
+
+################################## Update ############################################
+# Update package list
+sudo apt update
+
+################################## Build Manager ############################################
+# Install build manager
+if ! CommandExists cmake; then
+    sudo apt install -y cmake
+else 
+	echo "CMake already installed"
+fi
+
+################################## GIT ############################################
+# Install Git
+if ! CommandExists git; then
+    sudo apt install -y git
+    git config --global user.name "$gitName"
+    git config --global user.email "$gitEmail"
+    git config --global pager.branch 'false'
+else
+    echo "Git already installed"
+fi
+
+################################## Programming Languages ############################################
+# Install Rust
+if ! CommandExists rustc; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+else
+    echo "Rust already installed"
+fi
+# Install C and C++ Compilers
+if ! CommandExists gcc; then
+    sudo apt install build-essential
+else
+    echo "C and C++ already installed"
+fi
+
+################################## IDE ############################################
+# Install NVIM
+if ! CommandExists nvim; then
+    sudo apt install -y neovim
+else
+    echo "Neovim already installed"
+fi
+
+################################## FONTS ############################################
+# Install Nerd Font JetBrains
+if ! fc-list | grep -i "JetBrains Mono"; then
+    mkdir -p ~/.local/share/fonts
+    cd ~/.local/share/fonts && curl -fLo "JetBrains Mono Nerd Font Complete.ttf" https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/JetBrainsMono.zip
+    fc-cache -fv
+else
+    echo "JetBrains Mono Nerd Font already installed"
+fi
+
+################################## Disassembler and Decompiler ############################################
+# Install Ghidra
+if ! CommandExists ghidra; then
+    sudo add-apt-repository ppa:ghidra/ppa
+    sudo apt update
+    sudo apt install -y ghidra
+else
+    echo "Ghidra already installed"
+fi
+
+################################## Package Managers ############################################
+# Install package managers
+pkg_managers=("cargo", "npm", "snapd", "pip")
+for pkg in "${pkg_managers[@]}"; do
+    if ! CommandExists "$pkg"; then
+        sudo apt install -y "$pkg"
+    else
+        echo "$pkg already installed"
+    fi
+done
+
+################################## Network Tools ############################################
+# Install network connections tools
+network_tools=("openssl", "openssh-client")
+for tool in "${network_tools[@]}"; do
+    if ! CommandExists "$tool"; then
+        sudo apt install -y "$tool"
+    else
+        echo "$tool already installed"
+    fi
+done
+
+################################## Tile Manager ############################################
+# Install tile manager i3
+if ! CommandExists i3; then
+    sudo apt install -y i3
+else
+    echo "i3 already installed"
+fi
+
+################################## Shell ############################################
+# Install zsh and set pure theme
+if ! CommandExists zsh; then
+    sudo apt install -y zsh
+    chsh -s $(which zsh)
+else
+    echo "zsh already installed"
+fi
+
+if [ ! -d "$HOME/.zsh/pure" ]; then
+    git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
+    echo "fpath+=($HOME/.zsh/pure)" >>~/.zshrc
+    echo "autoload -U promptinit; promptinit" >>~/.zshrc
+    echo "prompt pure" >>~/.zshrc
+fi
+
+################################## Menu ############################################
+# Install dmenu
+if ! CommandExists dmenu; then
+    sudo apt install -y dmenu
+else
+    echo "dmenu already installed"
+fi
+
+################################## RC's ############################################
+curl -L -o "${repoName}.zip" "$zipUrl" && {
+    unzip -q "${repoName}.zip" -d "$extractDir" && rm -f "${repoName}.zip"
+} || echo "Failed to download or extract ${repoName}.zip"
+
+echo "Script Complete."
